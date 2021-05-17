@@ -1,28 +1,137 @@
 <?php
 
-require_once "helper.php";
+class LRUCache {
 
-//原生数组
-$startTime = microtime(true);
-$size = pow(2, 16);
-$arr = array();
-for ($key = 0, $maxKey = ($size - 1) * $size; $key <= $maxKey; $key += $size) {
-    $arr[$key] = $key;
+    protected $capacity,$cache,$map;
+
+    /**
+     * @param Integer $capacity
+     */
+    function __construct($capacity) {
+        $this->capacity = $capacity;
+        $this->cache = new DoubleLinked();
+        $this->map = [];
+    }
+
+    /**
+     * @param Integer $key
+     * @return Integer
+     */
+    function get($key)
+    {
+        if (isset($this->map[$key])) {
+            $node = $this->map[$key];
+            $this->makeRecently($key);
+            return $node->value;
+        }
+
+        return -1;
+    }
+
+    /**
+     * @param Integer $key
+     * @param Integer $value
+     * @return NULL
+     */
+    function put($key, $value)
+    {
+        if (isset($this->map[$key])) {
+            $node = $this->map[$key];
+            $this->cache->remove($node);
+        }
+
+        if ($this->capacity === $this->cache->size()) {
+            $this->removeLeastRecently();
+        }
+
+        $this->addRecently($key, $value);
+    }
+
+    function makeRecently($key)
+    {
+        $node = $this->map[$key];
+        $this->cache->remove($node);
+        $this->cache->addLast($node);
+    }
+
+    function addRecently($key, $value)
+    {
+        $node = new Node($key, $value);
+        $this->map[$key] = $node;
+        $this->cache->addLast($node);
+    }
+
+    function deleteKey($key)
+    {
+        $node = $this->map[$key];
+        $this->cache->remove($key);
+        unset($this->map[$key]);
+    }
+
+    function removeLeastRecently()
+    {
+       $deletedNode = $this->cache->removeLast();
+       unset($this->map[$deletedNode->key]);
+    }
 }
-$endTime = microtime(true);
-echo '原生数组用时：'.($endTime - $startTime).PHP_EOL;
 
+Class DoubleLinked
+{
+    protected $size,$head,$tail;
 
-//new_array
-$startTime = microtime(true);
-$newArr = new_array();
-for ($key = 0, $maxKey = ($size - 1) * $size; $key <= $maxKey; $key += $size) {
-    $newArr[$key] = $key;
+    public function __construct ()
+    {
+        $this->size = 0;
+        $this->head = new Node(0, 0);
+        $this->tail = new Node(0, 0);
+        $this->head->next = $this->tail;
+        $this->tail->prev = $this->head;
+    }
+
+    public function addLast($node)
+    {
+        $node->prev = $this->head;
+        $node->next = $this->head->next;
+        $this->head->next->prev = $node;
+        $this->head->next = $node;
+
+        $this->size++;
+    }
+
+    public function remove($node)
+    {
+        $node->prev->next = $node->next;
+        $node->next->prev = $node->prev;
+
+        $this->size--;
+    }
+
+    public function removeLast()
+    {
+        if ($this->head->next === $this->tail) {
+            return null;
+        }
+
+        $lastNode = $this->tail->prev;
+        $this->remove($lastNode);
+
+        return $lastNode;
+    }
+
+    public function size()
+    {
+        return $this->size;
+    }
 }
-$endTime = microtime(true);
-echo 'new_array用时：'.($endTime - $startTime).PHP_EOL;
 
-/*
-foreach ($newArr as $key => $value) {
-    echo "key：$key , value：$value".PHP_EOL;
-}*/
+Class Node
+{
+    public $key,$value,$prev,$next;
+
+    public function __construct($key, $value)
+    {
+        $this->key = $key;
+        $this->value = $value;
+    }
+}
+
