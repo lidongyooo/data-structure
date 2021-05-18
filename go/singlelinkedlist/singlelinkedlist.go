@@ -9,7 +9,7 @@ type Node struct {
 
 type LinkedList struct {
 	head *Node
-	count uint8
+	count uint
 }
 
 //NewListNode GetNext GetValue NewLinkedList InsertAfter InsertBefore InsertToHead InsertToTail FindByIndex DeleteNode Print
@@ -68,8 +68,8 @@ func (linkedList *LinkedList) InsertBefore(node *Node, val string) bool {
 	return true
 }
 
-func (this *LinkedList) Print() {
-	cur := this.head.next
+func (linkedList *LinkedList) Print() {
+	cur := linkedList.head.next
 	format := ""
 	for nil != cur {
 		format += fmt.Sprintf("%+v", cur.GetValue())
@@ -81,6 +81,49 @@ func (this *LinkedList) Print() {
 	fmt.Println(format)
 }
 
+func (linkedList *LinkedList) InsertToHead(val string) bool {
+	return linkedList.InsertAfter(linkedList.head, val)
+}
+
+func (linkedList *LinkedList) InsertToTail(val string) bool {
+	currNode := linkedList.head
+
+	for currNode.next != nil {
+		currNode = currNode.next
+	}
+
+	return linkedList.InsertAfter(currNode, val)
+}
+
+func (linkedList *LinkedList) FindByIndex(index uint) *Node {
+	currNode := linkedList.head
+
+	var i uint = 0
+
+	for ; i < index; i++ {
+		currNode = currNode.next
+	}
+
+	return currNode
+}
+
+func (linkedList *LinkedList) DeleteNode(node *Node) bool {
+	if nil == node {
+		return false
+	}
+
+	prevNode := linkedList.head
+
+	for prevNode.next != node {
+		prevNode = prevNode.next
+	}
+
+	prevNode.next = node.next
+	node = nil
+	linkedList.count--
+
+	return true
+}
 
 
 
