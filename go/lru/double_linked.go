@@ -1,4 +1,4 @@
-package lur
+package lru
 
 type Node struct {
 	key int
@@ -10,7 +10,7 @@ type Node struct {
 type DoubleLinked struct {
 	head *Node
 	tail *Node
-	counter int
+	counter uint
 }
 
 func NewNode(key int, val string, next *Node, prev *Node) *Node {
